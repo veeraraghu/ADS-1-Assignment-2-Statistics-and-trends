@@ -4,7 +4,53 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
+#Defining function to transpose data
+def transpose_of_data(data):
+    '''
+    This function will create transpose of the given data and returns 
+    both given data and transposed data.
+
+    Parameters
+    ----------
+    data : pandas.DataFrame
+        DataFrame for which we find transpose.
+
+    Returns
+    -------
+    data : pandas.DataFrame
+        Given dataframe for which transpose is found.
+    data_tr : pandas.DataFrame
+        Transposed dataframe of given data.
+
+    '''
+    data_tr = pd.DataFrame.transpose(data)
+    data_tr.header = data_tr.iloc[0, :]
+    data_tr = data_tr.iloc[1:, :]
+
+    return data, data_tr
+
+
+#Defining function to transpose data and remove few non_numerical rows
 def transpose(data):
+    '''
+    This function will create transpose of the given data and removes 
+    non-numeric columns such as Country Code, Indicator Code and Indicator 
+    Name which are as part of world bank data and returns both given data and 
+    transposed data.
+
+    Parameters
+    ----------
+    data : pandas.DataFrame
+        DataFrame for which we find transpose.
+
+    Returns
+    -------
+    data : pandas.DataFrame
+        Given dataframe for which transpose is found.
+    data_tr : pandas.DataFrame
+        Transposed dataframe of given data.
+
+    '''
     data.drop(['Country Code', 'Indicator Name',
               'Indicator Code'], axis=1, inplace=True)
     data_tr = pd.DataFrame.transpose(data)
@@ -14,8 +60,25 @@ def transpose(data):
     return data, data_tr
 
 
+#Defining function that plots bargraph for multiple countries and years of a
+#indicator using subplots withing same plot
 def multi_bar_plot(data, labels):
+    '''
+    This function produce a barplot of given data indicator values of 
+    countries in index  over years in columns.
 
+    Parameters
+    ----------
+    data : pandas.dataFrame
+        Indicator data of selected countries over chosen years as as DataFrame.
+    labels : List
+        List of ylabel and plot title used for the plot.
+
+    Returns
+    -------
+    Displays the bar plot.
+
+    '''
     plt.figure()
     ax = plt.subplot()
     years = data.columns
@@ -37,7 +100,33 @@ def multi_bar_plot(data, labels):
     plt.show()
 
 
+#Defining function that creates new dataframe to get country specific
+#indicators data
 def country_data(list_of_dfs, list_of_indicators, country, years):
+    '''
+    This function will create a new dataframe with indicator data of a 
+    specified country over years.
+
+    Parameters
+    ----------
+    list_of_dfs : List
+        List of dataframes where country specific indicator data is collecetd.
+    list_of_indicators : List
+        List of strings which are used as column names of our new dataframe.
+    country : STR
+        String of our country name which is used to locate data in indicator 
+        dataframes.
+    years : List
+        List of two years (Starting year and Ending year) which are used to 
+        select data from indicators dataframes.
+
+    Returns
+    -------
+    country_data : pandas.DataFrame
+        DataFrame which contains country specific indicator data as columns 
+        and years as index.
+
+    '''
     country_data = pd.DataFrame()
     for i in range(len(list_of_dfs)):
         if list_of_indicators[i] == 'CO2 emissions':
@@ -52,11 +141,29 @@ def country_data(list_of_dfs, list_of_indicators, country, years):
     return country_data
 
 
+#Defining function that plots correlation heatmap
 def heat_map(data, lab, color):
+    '''
+    This function will produce a correlation coefficient heatmap of given data 
+    and prints the correlation coefficient matrix.
+
+    Parameters
+    ----------
+    data : pandas.DataFrame
+        DataFrame for which correlation to be visualised.
+    lab : STR
+        String of our data name which is used title of the heatmap produced.
+    color : STR
+        String of cmap attribute for plotting heatmap.
+
+    Returns
+    -------
+    Displays the heatmap plot.
+
+    '''
     corr_matrix = np.array(data.corr())
     print('Correlation Coefficient matrix of ', lab, ' on indicators is')
     print(corr_matrix, '\n')
-
     plt.figure()
     plt.imshow(corr_matrix, cmap=color,
                interpolation='nearest', aspect='auto')
@@ -72,12 +179,11 @@ def heat_map(data, lab, color):
     plt.show()
 
 
-#Creating Population Total dataframes with columns as Years and Countires
+#Reading Population Total data
 pop_total_y, pop_total_c = transpose(pd.read_csv('population_total.csv'))
 print('Population Total - Statistical data description over few years')
 print(pop_total_y.loc[:, ['1960', '1990',
       '2005', '2015', '2021']].describe(), '\n')
-
 
 '''
 Countries in this dataset include non-countries, so sorted the dataframe to 
@@ -85,6 +191,7 @@ get countries with highest population in 2021 and exported to csv to gather
 all countries and form a new list/dataframe of top 10 countries with 
 highest population
 '''
+
 all_countries = pop_total_y.sort_values(
     '2021', ascending=False, ignore_index=True).iloc[:, 0]
 all_countries.to_csv('all_countries.csv')
@@ -140,11 +247,18 @@ multi_bar_plot(pop, labels)
 co2_emissions_y, co2_emissions_c = transpose(
     pd.read_csv('co2_emissions(kt).csv'))
 years = ['1990', '1995', '2000', '2005', '2010', '2015']
+
+'''
+In CO2 emissions data, we have multiple columns with same country and they all 
+are CO2 emissions caused by different processes or reasons and total emission 
+included.
+In order to clear the confusion, I did a groupby over Country Name with a mean 
+operation over those which gives the exact CO2 emission of the country.
+'''
+
 co2_emissions_y = co2_emissions_y.groupby('Country Name').sum()
 co2_emissions_y = co2_emissions_y.loc[countries_6_pop, years]
-
 co2 = co2_emissions_y.copy()
-
 print('CO2 emissions data of selected countries and years')
 print(co2, '\n')
 
@@ -156,7 +270,7 @@ multi_bar_plot(co2, labels)
 power_y, power_c = transpose(pd.read_csv(
     'electric_power_consumption(kWh per capita).csv'))
 
-power_y = power_y.groupby('Country Name').sum()
+power_y = power_y.set_index('Country Name', drop=True)
 power = power_y.loc[countries_6_pop, years].copy()
 
 #Plotting barplot for seeing variation in Power consumption over varied years
