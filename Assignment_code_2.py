@@ -118,7 +118,7 @@ def multi_bar_plot(data, labels):
     ax.set_xticks([j+0.4 for j in range(len(x_ticks))])
     ax.set_xticklabels(x_ticks, rotation=45)
     ax.legend()
-    plt.savefig(labels[1]+'.png', bbox_inches='tight', dpi=300)
+    plt.savefig(labels[1]+'.png', bbox_inches='tight', dpi=500)
     plt.show()
 
 
@@ -151,14 +151,9 @@ def country_data(list_of_dfs, list_of_indicators, country, years):
     '''
     country_data = pd.DataFrame()
     for i in range(len(list_of_dfs)):
-        if list_of_indicators[i] == 'CO2 emissions':
-            country_data[list_of_indicators[i]
-                         ] = list_of_dfs[i].loc[years[0]:years[1],
-                                                country].sum(axis=1)
-        else:
-            country_data[list_of_indicators[i]
-                         ] = list_of_dfs[i].loc[years[0]:years[1],
-                                                country].astype(int)
+        country_data[list_of_indicators[i]
+                     ] = list_of_dfs[i].loc[years[0]:years[1],
+                                            country].astype(int)
 
     return country_data
 
@@ -198,7 +193,7 @@ def heat_map(data, lab, color):
                      ha="center", va="center", color="black")
     plt.colorbar()
     plt.title(lab)
-    plt.savefig(lab+'.png', bbox_inches='tight', dpi=300)
+    plt.savefig(lab+'.png', bbox_inches='tight', dpi=500)
     plt.show()
 
 
@@ -265,30 +260,25 @@ pop.drop('Country Name', axis=1, inplace=True)
 pop = pop.loc[countries_6_pop, :]
 
 #Plotting barplot for seeing variation in population over varied years
-labels = ['Popuation in Millions', 'Population growth over years']
+for i in pop.columns:
+    pop[i] = pop[i]/1000000
+labels = ['Popuation in Millions', 'Population Total over years']
 multi_bar_plot(pop, labels)
 
 #Reading CO2 emissions data from csv file and generating its transpose
-co2_emissions = readfile('co2_emissions(kt).csv')
+co2_emissions = readfile('co2_emissions.csv')
 co2_emissions_y, co2_emissions_c = transpose(co2_emissions)
 years = ['1990', '1995', '2000', '2005', '2010', '2015']
 
-'''
-In CO2 emissions data, we have multiple columns with same country and they all 
-are CO2 emissions caused by different processes or reasons and total emission 
-included.
-In order to clear the confusion, I did a groupby over Country Name with a mean 
-operation over those which gives the exact CO2 emission of the country.
-'''
-
-co2_emissions_y = co2_emissions_y.groupby('Country Name').sum()
-co2_emissions_y = co2_emissions_y.loc[countries_6_pop, years]
-co2 = co2_emissions_y.copy()
+co2_emissions_y = co2_emissions_y.set_index('Country Name', drop=True)
+co2 = co2_emissions_y.loc[countries_6_pop, years].copy()
 print('CO2 emissions data of selected countries and years')
 print(co2, '\n')
 
 #Plotting barplot for seeing variation in CO2 emissions over varied years
-labels = ['CO2 emissions', 'Total CO2 emissions in kt']
+for i in co2.columns:
+    co2[i] = co2[i]/1000000
+labels = ['CO2 emissions in Million kt', 'Total CO2 emissions in kt']
 multi_bar_plot(co2, labels)
 
 #Reading CO2 emissions of liquid fuel consumed data from csv file and
@@ -304,7 +294,10 @@ co2_pc = co2_pc.loc[countries_6_pop, :]
 
 #Plotting barplot for seeing variation in CO2 emissions over liquid fuel burnt
 # over varied years
-labels = ['CO2 emissions kt', 'CO2 emissions from liquid fuel consumption']
+for i in co2_pc.columns:
+    co2_pc[i] = co2_pc[i]/1000000
+labels = ['CO2 emissions in Million kt',
+          'CO2 emissions from liquid fuel consumption']
 multi_bar_plot(co2_pc, labels)
 
 #Reading CO2 emissions of gaseous fuel consumed data from csv file and
@@ -320,7 +313,9 @@ co2_g = co2_g.loc[countries_6_pop, :]
 
 #Plotting barplot for seeing variation in CO2 emissions over gaseous fuel
 #burnt over varied years
-labels = ['CO2 gaseous emissions kt',
+for i in co2_g.columns:
+    co2_g[i] = co2_g[i]/1000000
+labels = ['CO2 gaseous emissions in Million kt',
           'CO2 emissions from gaseous fuel consumption']
 multi_bar_plot(co2_g, labels)
 
@@ -335,7 +330,9 @@ methane.drop('Country Name', axis=1, inplace=True)
 methane = methane.loc[countries_6_pop, :]
 
 #Plotting barplot for seeing variation in Methane emission over varied years
-labels = ['Methane emissions kt', 'Methane emissions']
+for i in methane.columns:
+    methane[i] = methane[i]/1000000
+labels = ['Methane emissions in Million kt', 'Methane emissions']
 multi_bar_plot(methane, labels)
 
 #Reading Greenhouse gas emissions data from csv file and generating its
@@ -351,8 +348,10 @@ greenhouse = greenhouse.loc[countries_6_pop, :]
 
 #Plotting barplot for seeing variation in Greenhouse gas emissions
 #over varied years
+for i in greenhouse.columns:
+    greenhouse[i] = greenhouse[i]/1000000
 labels = ['Greenhouse emissions kt',
-          'Total Greenhouse gas emissions of kt equivalent']
+          'Greenhouse gas emissions of CO2 equivalent']
 multi_bar_plot(greenhouse, labels)
 
 #Creating dataframes as list for accessing specific country data
@@ -399,5 +398,5 @@ plt.ylabel('%Access to electricity')
 plt.title('Access to electricity in % to population')
 plt.xticks(acs.index[::2])
 plt.legend(title='Countries', bbox_to_anchor=(1, 1))
-plt.savefig('Access_to_electricity.png', bbox_inches='tight', dpi=400)
+plt.savefig('Access_to_electricity.png', bbox_inches='tight', dpi=500)
 plt.show()
