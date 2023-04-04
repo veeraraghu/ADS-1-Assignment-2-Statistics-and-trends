@@ -4,6 +4,27 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
+#Defining function to read data from CSV file
+def readfile(path):
+    '''
+    This function will create dataframe from given filepath of csv file.
+
+    Parameters
+    ----------
+    path : STR
+        CSV filepath as string.
+
+    Returns
+    -------
+    data : pandas.DataFrame
+        DataFrame created from csv file.
+
+    '''
+    data = pd.read_csv(path)
+
+    return data
+
+
 #Defining function to transpose data
 def transpose_of_data(data):
     '''
@@ -97,6 +118,7 @@ def multi_bar_plot(data, labels):
     ax.set_xticks([j+0.4 for j in range(len(x_ticks))])
     ax.set_xticklabels(x_ticks, rotation=45)
     ax.legend()
+    plt.savefig(labels[1]+'.png', bbox_inches='tight', dpi=300)
     plt.show()
 
 
@@ -176,11 +198,13 @@ def heat_map(data, lab, color):
                      ha="center", va="center", color="black")
     plt.colorbar()
     plt.title(lab)
+    plt.savefig(lab+'.png', bbox_inches='tight', dpi=300)
     plt.show()
 
 
-#Reading Population Total data
-pop_total_y, pop_total_c = transpose(pd.read_csv('population_total.csv'))
+#Reading Population Total data from csv file and generating its transpose
+pop_total = readfile('population_total.csv')
+pop_total_y, pop_total_c = transpose(pop_total)
 print('Population Total - Statistical data description over few years')
 print(pop_total_y.loc[:, ['1960', '1990',
       '2005', '2015', '2021']].describe(), '\n')
@@ -216,7 +240,7 @@ Plotting the population variation for these countries over years
 pop_growth = pop_total_c.copy()
 pop_growth = pop_growth.loc[:'2021', countries_6_pop]
 
-plt.figure()
+plt.figure(figsize=(10, 8))
 '''
 pct_change calculates %difference between the value in the row and the row 
 ahead, in this way we can achieve the population growth or loss over years
@@ -229,6 +253,7 @@ plt.ylabel('%Population growth')
 plt.title('Population growth over years')
 plt.xticks(pop_growth.index[::10])
 plt.legend(title='Countries', bbox_to_anchor=(1, 1))
+plt.savefig('Population_growth.png', bbox_inches='tight', dpi=300)
 plt.show()
 
 #Slicing data for selecting specific countries and years
@@ -237,15 +262,15 @@ pop = pop_total_y.loc[:,
                        '2010', '2015']]
 pop.index = pop['Country Name']
 pop.drop('Country Name', axis=1, inplace=True)
-pop = pop.loc[countries_10_pop, :]
+pop = pop.loc[countries_6_pop, :]
 
 #Plotting barplot for seeing variation in population over varied years
 labels = ['Popuation in Millions', 'Population growth over years']
 multi_bar_plot(pop, labels)
 
-#Reading CO2 emissions data
-co2_emissions_y, co2_emissions_c = transpose(
-    pd.read_csv('co2_emissions(kt).csv'))
+#Reading CO2 emissions data from csv file and generating its transpose
+co2_emissions = readfile('co2_emissions(kt).csv')
+co2_emissions_y, co2_emissions_c = transpose(co2_emissions)
 years = ['1990', '1995', '2000', '2005', '2010', '2015']
 
 '''
@@ -266,19 +291,10 @@ print(co2, '\n')
 labels = ['CO2 emissions', 'Total CO2 emissions in kt']
 multi_bar_plot(co2, labels)
 
-#Reading ELectric Power Consumption Data
-power_y, power_c = transpose(pd.read_csv(
-    'electric_power_consumption(kWh per capita).csv'))
-
-power_y = power_y.set_index('Country Name', drop=True)
-power = power_y.loc[countries_6_pop, years].copy()
-
-#Plotting barplot for seeing variation in Power consumption over varied years
-labels = ['Power kWh per capita', 'Electric Power Consumption kWh per capita']
-multi_bar_plot(power, labels)
-
-#Reading CO2 emissions of liquid fuel consumed data
-co2_pc_y, co2_pc_c = transpose(pd.read_csv('co2_emissions_liquid.csv'))
+#Reading CO2 emissions of liquid fuel consumed data from csv file and
+#generating its transpose
+co2_pc = readfile('co2_emissions_liquid.csv')
+co2_pc_y, co2_pc_c = transpose(co2_pc)
 co2_pc = co2_pc_y.loc[:,
                       ['Country Name', '1990', '1995', '2000', '2005',
                        '2010', '2015']].copy()
@@ -291,8 +307,10 @@ co2_pc = co2_pc.loc[countries_6_pop, :]
 labels = ['CO2 emissions kt', 'CO2 emissions from liquid fuel consumption']
 multi_bar_plot(co2_pc, labels)
 
-#Reading CO2 emissions of gaseous fuel consumed data
-co2_g_y, co2_g_c = transpose(pd.read_csv('co2_emissions_gaseous.csv'))
+#Reading CO2 emissions of gaseous fuel consumed data from csv file and
+#generating its transpose
+co2_g = readfile('co2_emissions_gaseous.csv')
+co2_g_y, co2_g_c = transpose(co2_g)
 co2_g = co2_g_y.loc[:,
                     ['Country Name', '1990', '1995', '2000', '2005',
                      '2010', '2015']]
@@ -306,12 +324,12 @@ labels = ['CO2 gaseous emissions kt',
           'CO2 emissions from gaseous fuel consumption']
 multi_bar_plot(co2_g, labels)
 
-#Reading Methane emissions data
-methane_y, methane_c = transpose(pd.read_csv('methane_emissions.csv'))
+#Reading Methane emissions data from csv file and generating its transpose
+methane = readfile('methane_emissions.csv')
+methane_y, methane_c = transpose(methane)
 
-methane = methane_y.loc[:,
-                        ['Country Name', '1990', '1995', '2000', '2005',
-                         '2010', '2015']]
+methane = methane_y.loc[:, ['Country Name', '1990', '1995', '2000', '2005',
+                            '2010', '2015']]
 methane.index = methane['Country Name']
 methane.drop('Country Name', axis=1, inplace=True)
 methane = methane.loc[countries_6_pop, :]
@@ -320,13 +338,13 @@ methane = methane.loc[countries_6_pop, :]
 labels = ['Methane emissions kt', 'Methane emissions']
 multi_bar_plot(methane, labels)
 
-#Reading Greenhouse gas emissions data
-greenhouse_y, greenhouse_c = transpose(
-    pd.read_csv('total_greenhouse_gases.csv'))
+#Reading Greenhouse gas emissions data from csv file and generating its
+#transpose
+greenhouse = readfile('total_greenhouse_gases.csv')
+greenhouse_y, greenhouse_c = transpose(greenhouse)
 
-greenhouse = greenhouse_y.loc[:,
-                              ['Country Name', '1990', '1995', '2000', '2005',
-                               '2010', '2015']]
+greenhouse = greenhouse_y.loc[:, ['Country Name', '1990', '1995', '2000',
+                                  '2005', '2010', '2015']]
 greenhouse.index = greenhouse['Country Name']
 greenhouse.drop('Country Name', axis=1, inplace=True)
 greenhouse = greenhouse.loc[countries_6_pop, :]
@@ -337,29 +355,14 @@ labels = ['Greenhouse emissions kt',
           'Total Greenhouse gas emissions of kt equivalent']
 multi_bar_plot(greenhouse, labels)
 
-#Reading Agricultural Land area data
-agri_land_y, agri_land_c = transpose(pd.read_csv('agriculturan_land.csv'))
-
-agri_land = agri_land_y.loc[:,
-                            ['Country Name', '1990', '1995', '2000', '2005',
-                             '2010', '2015']]
-agri_land.index = agri_land['Country Name']
-agri_land.drop('Country Name', axis=1, inplace=True)
-agri_land = agri_land.loc[countries_6_pop, :]
-
-#Plotting barplot for seeing variation in Agricultural land area
-#over varied years
-labels = ['Agriculture land in Sq KM', 'Agricultural land available']
-multi_bar_plot(agri_land, labels)
-
 #Creating dataframes as list for accessing specific country data
 #from all indicators
-list_of_dfs = [pop_total_c, co2_emissions_c, power_c, co2_pc_c, co2_g_c,
-               methane_c, greenhouse_c, agri_land_c]
+list_of_dfs = [pop_total_c, co2_emissions_c, co2_pc_c, co2_g_c,
+               methane_c, greenhouse_c]
 list_of_indicators = ['Total Population', 'CO2 emissions',
-                      'Electric power consumed', 'Liquid fuel emissions',
-                      'Gas fuel emissions', 'Methane emissions',
-                      'Greenhouse emissions', 'Agricultural Land']
+                      'Liquid fuel emissions', 'Gas fuel emissions',
+                      'Methane emissions', 'Greenhouse emissions']
+
 #Years have a list of two years where in between we have all indicators
 #data without any missing values
 years = ['1990', '2014']
@@ -382,8 +385,8 @@ heat_map(united_states, 'United States', 'plasma_r')
 
 
 #Reading Access to Electricity data
-elctrcty_access_y, elctrcty_access_c = transpose(
-    pd.read_csv('access_to_electricity(% of population).csv'))
+elctrcty_access = readfile('access_to_electricity(% of population).csv')
+elctrcty_access_y, elctrcty_access_c = transpose(elctrcty_access)
 acs = elctrcty_access_c.loc['2000':'2020', countries_6_pop].copy()
 
 #Plotting % Population Access to Electricity data of selected countries from
@@ -396,4 +399,5 @@ plt.ylabel('%Access to electricity')
 plt.title('Access to electricity in % to population')
 plt.xticks(acs.index[::2])
 plt.legend(title='Countries', bbox_to_anchor=(1, 1))
+plt.savefig('Access_to_electricity.png', bbox_inches='tight', dpi=400)
 plt.show()
