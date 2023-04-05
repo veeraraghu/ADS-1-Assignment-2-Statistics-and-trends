@@ -200,6 +200,10 @@ def heat_map(data, lab, color):
 #Reading Population Total data from csv file and generating its transpose
 pop_total = readfile('population_total.csv')
 pop_total_y, pop_total_c = transpose(pop_total)
+print('Population Total data head with Years as columns:')
+print(pop_total_y.head(), '\n')
+print('Population Total data head with Countries as columns:')
+print(pop_total_c.head(), '\n')
 print('Population Total - Statistical data description over few years')
 print(pop_total_y.loc[:, ['1960', '1990',
       '2005', '2015', '2021']].describe(), '\n')
@@ -388,6 +392,12 @@ elctrcty_access = readfile('access_to_electricity(% of population).csv')
 elctrcty_access_y, elctrcty_access_c = transpose(elctrcty_access)
 acs = elctrcty_access_c.loc['2000':'2020', countries_6_pop].copy()
 
+new_elec = elctrcty_access[['Country Name', '1990', '2000', '2010', '2019']]
+
+mean_elec = new_elec.groupby('Country Name').mean()
+print('Mean access to Electricity')
+print(mean_elec.head())
+
 #Plotting % Population Access to Electricity data of selected countries from
 #2000 to 2020
 plt.figure()
@@ -400,3 +410,19 @@ plt.xticks(acs.index[::2])
 plt.legend(title='Countries', bbox_to_anchor=(1, 1))
 plt.savefig('Access_to_electricity.png', bbox_inches='tight', dpi=500)
 plt.show()
+
+#Finding Skewness
+skw = []
+kurt = []
+for i in acs.columns:
+    skw.append(acs[i].skew())
+    kurt.append(acs[i].kurtosis())
+
+acs_sk_kurt = pd.DataFrame()
+acs_sk_kurt.index = acs.columns
+acs_sk_kurt['Skewness'] = skw
+acs_sk_kurt['Kurtosis'] = kurt
+#acs_sk_kurt.to_csv('acs_sk_kurt.csv')
+
+print('Skewness and Kurtosis of Access to electricit is: ')
+print(acs_sk_kurt)
